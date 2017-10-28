@@ -18,8 +18,8 @@ def create_connection(db_file):
 
 
 def create_client(conn, client):
-    sql = ''' INSERT INTO clients(date_added, OKPO, name, market, branch, manager)
-              VALUES(?,?,?,?,?,?) '''
+    sql = ''' INSERT INTO clients(date_added, OKPO, name, branch, manager)
+              VALUES(?,?,?,?,?) '''
     cur = conn.cursor()
     cur.execute(sql, client)
     return cur.lastrowid
@@ -31,9 +31,6 @@ def insert_a_client():
     okpo = wb.sheets['database'].range("B3").value
 
     client_name = wb.sheets['database'].range("C3").value
-    # wb.sheets[0].range("A4").value = okpo
-    # wb.sheets[0].range("B4").value = client_name
-    market = wb.api.ActiveSheet.OLEObjects("ComboBox1").Object.Value
     branch = wb.api.ActiveSheet.OLEObjects("ComboBox2").Object.Value
     manager = wb.api.ActiveSheet.OLEObjects("ComboBox9").Object.Value
     database = os.path.join(os.path.dirname(wb.fullname), 'cmd_dep_CRM.db')
@@ -44,22 +41,22 @@ def insert_a_client():
     try:
         with conn:
             # create a new client
-            client = (date_added, okpo, client_name, market, branch, manager)
+            client = (date_added, okpo, client_name, branch, manager)
             client_id = create_client(conn, client)
-            wb.sheets['database'].range("F22").color = (146, 208, 80)
-            wb.sheets['database'].range("F22").value = \
+            wb.sheets['database'].range("F2").color = (146, 208, 80)
+            wb.sheets['database'].range("F2").value = \
                 str(datetime.datetime.now()) + \
                 ": Создан клиент " + str(client_name)
 
     except sqlite3.IntegrityError as e:
-        wb.sheets['database'].range("F22").color = (240, 100, 77)
-        wb.sheets['database'].range("F22").value = \
+        wb.sheets['database'].range("F2").color = (240, 100, 77)
+        wb.sheets['database'].range("F2").value = \
             str(datetime.datetime.now()) + ': ' + str(e)
 
 
 def create_service(conn, service):
-    sql = ''' INSERT INTO services(date_added, client, product)
-              VALUES(?,?,?) '''
+    sql = ''' INSERT INTO services(date_added, client, product, status, comment)
+              VALUES(?,?,?,?,?) '''
     cur = conn.cursor()
     cur.execute(sql, service)
     return cur.lastrowid
@@ -70,6 +67,8 @@ def insert_a_service():
     date_added = wb.sheets['database'].range("A10").value.strftime('%Y-%m-%d')
     client = wb.api.ActiveSheet.OLEObjects("ComboBox3").Object.Value
     product = wb.api.ActiveSheet.OLEObjects("ComboBox4").Object.Value
+    status = wb.api.ActiveSheet.OLEObjects("ComboBox8").Object.Value
+    comment = wb.sheets['database'].range("E10").value
 
     database = os.path.join(os.path.dirname(wb.fullname), 'cmd_dep_CRM.db')
 
@@ -78,21 +77,24 @@ def insert_a_service():
     try:
         with conn:
             # create a new project
-            service = (date_added, client, product)
+            service = (date_added, client, product, status, comment)
             service_id = create_service(conn, service)
-            wb.sheets['database'].range("F22").color = (146, 208, 80)
-            wb.sheets['database'].range("F22").value = \
+            wb.sheets['database'].range("F2").color = (146, 208, 80)
+            wb.sheets['database'].range("F2").value = \
                 str(datetime.datetime.now()) + ": Клиенту " + str(client) \
                 + ' добавлен продукт ' + str(product)
     except sqlite3.IntegrityError as e:
-        wb.sheets['database'].range("F22").value = \
+        wb.sheets['database'].range("F2").value = \
             str(datetime.datetime.now()) + ': ' + str(e)
-        wb.sheets['database'].range("F22").color = (240, 100, 77)
+        wb.sheets['database'].range("F2").color = (240, 100, 77)
 
 
 def create_contact(conn, contact):
-    sql = ''' INSERT INTO contacts(date_added, family, name, surname, phone, email)
-              VALUES(?,?,?,?,?,?) '''
+    sql = ''' INSERT INTO contacts(date_added, family, name,
+                                    surname, position,
+                                    mobile_phone, work_phone,
+                                    external, email)
+              VALUES(?,?,?,?,?,?,?,?,?) '''
     cur = conn.cursor()
     cur.execute(sql, contact)
     return cur.lastrowid
@@ -105,8 +107,8 @@ def insert_a_contact():
     name = wb.sheets['database'].range("C17").value
 
     if name is None:
-        wb.sheets['database'].range("F22").color = (240, 100, 77)
-        wb.sheets['database'].range("F22").value = \
+        wb.sheets['database'].range("F2").color = (240, 100, 77)
+        wb.sheets['database'].range("F2").value = \
             "Имя контакта является обязательным для заполнения!"
         return None
     else:
@@ -119,8 +121,11 @@ def insert_a_contact():
     if surname is None:
         surname = ' '
 
-    phone = wb.sheets['database'].range("E17").value
+    mobile_phone = wb.sheets['database'].range("E17").value
     email = wb.sheets['database'].range("F17").value
+    position = wb.sheets['database'].range("C20").value
+    work_phone = wb.sheets['database'].range("E20").value
+    external = wb.sheets['database'].range("F20").value
 
     database = os.path.join(os.path.dirname(wb.fullname), 'cmd_dep_CRM.db')
 
@@ -129,15 +134,17 @@ def insert_a_contact():
     try:
         with conn:
             # create a new project
-            contact = (date_added, family, name, surname, phone, email)
+            contact = (date_added, family, name,
+                       surname, mobile_phone, work_phone, external,
+                       position, email)
             contact_id = create_contact(conn, contact)
-            wb.sheets['database'].range("F22").color = (146, 208, 80)
-            wb.sheets['database'].range("F22").value = \
+            wb.sheets['database'].range("F2").color = (146, 208, 80)
+            wb.sheets['database'].range("F2").value = \
                 str(datetime.datetime.now()) + ": Создан контакт " + str(name) \
                 + ' ' + str(surname) + ' ' + str(family)
     except sqlite3.IntegrityError as e:
-        wb.sheets['database'].range("F22").color = (240, 100, 77)
-        wb.sheets['database'].range("F22").value = \
+        wb.sheets['database'].range("F2").color = (240, 100, 77)
+        wb.sheets['database'].range("F2").value = \
             str(datetime.datetime.now()) + ': ' + str(e)
 
 
@@ -163,19 +170,22 @@ def insert_a_bounded_contact():
             # create a bounded_contact
             bounded_contact = (client, contact)
             bounded_contact_id = create_bounded_contact(conn, bounded_contact)
-            wb.sheets['database'].range("F22").color = (146, 208, 80)
-            wb.sheets['database'].range("F22").value = \
+            wb.sheets['database'].range("F2").color = (146, 208, 80)
+            wb.sheets['database'].range("F2").value = \
                 str(datetime.datetime.now()) + ": Клиенту " + str(client) + \
                 ' назначен контакт ' + str(contact)
     except sqlite3.IntegrityError as e:
-        wb.sheets['database'].range("F22").color = (240, 100, 77)
-        wb.sheets['database'].range("F22").value = \
+        wb.sheets['database'].range("F2").color = (240, 100, 77)
+        wb.sheets['database'].range("F2").value = \
             str(datetime.datetime.now()) + ': ' + str(e)
 
 
 def create_bounded_status(conn, bounded_status):
-    sql = ''' INSERT INTO bounded_statuses(client, status, date_added, comment)
-              VALUES(?,?,?,?) '''
+    sql = ''' INSERT INTO bounded_statuses(client, status, date_added, family, name,
+                                    surname, position,
+                                    mmobile_phone, work_phone
+                                    external, email)
+              VALUES(?,?,?,?,?,?,?,?,?) '''
     cur = conn.cursor()
     cur.execute(sql, bounded_status)
     return cur.lastrowid
@@ -198,13 +208,13 @@ def insert_a_bounded_status():
             # create a new project
             bounded_status = (client, status, date_added, comment)
             bounded_status_id = create_bounded_status(conn, bounded_status)
-            wb.sheets['database'].range("F22").color = (146, 208, 80)
-            wb.sheets['database'].range("F22").value = \
+            wb.sheets['database'].range("F2").color = (146, 208, 80)
+            wb.sheets['database'].range("F2").value = \
                 str(datetime.datetime.now()) + ": Статус клиента " \
                 + str(client) + ' изменен на ' + str(status)
     except sqlite3.IntegrityError as e:
-        wb.sheets['database'].range("F22").color = (240, 100, 77)
-        wb.sheets['database'].range("F22").value = \
+        wb.sheets['database'].range("F2").color = (240, 100, 77)
+        wb.sheets['database'].range("F2").value = \
             str(datetime.datetime.now()) + ': ' + str(e)
 
 
@@ -218,9 +228,9 @@ def create_request(conn, request):
 
 def insert_a_request():
     wb = xw.Book.caller()
-    date_added = wb.sheets['database'].range("D10").value.strftime('%Y-%m-%d')
+    date_added = wb.sheets['database'].range("A28").value.strftime('%Y-%m-%d')
     branch = wb.api.ActiveSheet.OLEObjects("ComboBox10").Object.Value
-    comment = wb.sheets['database'].range("F10").value
+    comment = wb.sheets['database'].range("C28").value
 
     database = os.path.join(os.path.dirname(wb.fullname), 'cmd_dep_CRM.db')
 
@@ -231,13 +241,13 @@ def insert_a_request():
             # create a new request
             request = (date_added, branch, comment)
             request_id = create_request(conn, request)
-            wb.sheets['database'].range("F22").color = (146, 208, 80)
-            wb.sheets['database'].range("F22").value = \
+            wb.sheets['database'].range("F2").color = (146, 208, 80)
+            wb.sheets['database'].range("F2").value = \
                 str(datetime.datetime.now()) + \
                 ": Создано обращение от филиала " + str(branch)
     except sqlite3.IntegrityError as e:
-        wb.sheets['database'].range("F22").color = (240, 100, 77)
-        wb.sheets['database'].range("F22").value = \
+        wb.sheets['database'].range("F2").color = (240, 100, 77)
+        wb.sheets['database'].range("F2").value = \
             str(datetime.datetime.now()) + ': ' + str(e)
 
 
@@ -334,12 +344,13 @@ def get_all_clients():
     conn = create_connection(db_file, )
     cursor = conn.cursor()
     sql = '''SELECT DISTINCT clients.okpo AS 'ОКПО',  clients.name AS 'Компания',
-        markets.name AS 'Рынок', statuses.name AS 'Текущий статус',
+        products.name AS 'Продукт', statuses.name AS 'Текущий статус',
         bounded_statuses.date_added AS 'Статус действителен с',
         (contacts.name || contacts.family) AS 'Контактное лицо',
         contacts.phone AS 'Телефон', contacts.email AS 'Email'
         FROM clients
-        JOIN markets on markets.id = clients.market
+        JOIN products on products.id = services.product
+        JOIN services on services.client = clients.okpo
         JOIN bounded_statuses on bounded_statuses.client = clients.okpo AND
             bounded_statuses.date_added = (
             SELECT bounded_statuses.date_added FROM bounded_statuses
