@@ -313,19 +313,18 @@ def generate_branches_report():
     cursor = conn.cursor()
     sql = '''SELECT branches.name AS 'Филиал', products.name AS 'Продукт',
         statuses.name AS 'Статус',
-        COUNT(bounded_statuses.status) AS 'Количество',
-        MAX(bounded_statuses.date_added) AS 'Дата'
+        COUNT(services.status) AS 'Количество',
+        MAX(services.date_added) AS 'Дата'
         FROM branches
         JOIN clients on clients.branch = branches.id
         JOIN services on services.client = clients.okpo
         JOIN products on products.id = services.product
-        JOIN bounded_statuses on bounded_statuses.client = clients.okpo
-        JOIN statuses on statuses.id = bounded_statuses.status
-            AND bounded_statuses.date_added = (
-            SELECT MAX(bounded_statuses.date_added) FROM bounded_statuses
-            WHERE bounded_statuses.client = clients.okpo)
-        WHERE (bounded_statuses.date_added BETWEEN ? AND ?)
-        GROUP BY branches.name, bounded_statuses.status'''
+        JOIN statuses on statuses.id = services.status
+            AND services.date_added = (
+            SELECT MAX(services.date_added) FROM services
+            WHERE services.client = clients.okpo)
+        WHERE (services.date_added BETWEEN ? AND ?)
+        GROUP BY branches.name, services.status'''
 
     start_date = \
         wb.sheets['branches_report'].range("A3").value.strftime('%Y-%m-%d')
@@ -362,7 +361,7 @@ def get_all_clients():
         JOIN markets ON markets.id = products.market
         JOIN bounded_contacts ON bounded_contacts.client = clients.okpo
         JOIN contacts ON contacts.id = bounded_contacts.contact
-        GROUP BY clients.okpo'''
+        GROUP BY clients.okpo, contacts.name'''
 
     query = cursor.execute(sql, )
     cols = [column[0] for column in query.description]
