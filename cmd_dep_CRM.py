@@ -27,10 +27,10 @@ def create_client(conn, client):
 
 def insert_a_client():
     wb = xw.Book.caller()
-    date_added = wb.sheets['database'].range("A3").value.strftime('%Y-%m-%d')
-    okpo = wb.sheets['database'].range("B3").value
+    date_added = wb.sheets['management'].range("A3").value.strftime('%Y-%m-%d')
+    okpo = wb.sheets['management'].range("B3").value
 
-    client_name = wb.sheets['database'].range("C3").value
+    client_name = wb.sheets['management'].range("C3").value
     branch = wb.api.ActiveSheet.OLEObjects("ComboBox2").Object.Value
     manager = wb.api.ActiveSheet.OLEObjects("ComboBox9").Object.Value
     database = os.path.join(os.path.dirname(wb.fullname), 'cmd_dep_CRM.db')
@@ -43,14 +43,15 @@ def insert_a_client():
             # create a new client
             client = (date_added, okpo, client_name, branch, manager)
             client_id = create_client(conn, client)
-            wb.sheets['database'].range("F2").color = (146, 208, 80)
-            wb.sheets['database'].range("F2").value = \
+            wb.sheets['management'].range("F2").color = (146, 208, 80)
+            wb.sheets['management'].range("F2").value = \
                 str(datetime.datetime.now()) + \
                 ": Создан клиент " + str(client_name)
+            wb.sheets['management'].range('B3:C3').clear_contents()
 
     except sqlite3.IntegrityError as e:
-        wb.sheets['database'].range("F2").color = (240, 100, 77)
-        wb.sheets['database'].range("F2").value = \
+        wb.sheets['management'].range("F2").color = (240, 100, 77)
+        wb.sheets['management'].range("F2").value = \
             str(datetime.datetime.now()) + ': ' + str(e)
 
 
@@ -64,12 +65,12 @@ def create_service(conn, service):
 
 def insert_a_service():
     wb = xw.Book.caller()
-    date_added = wb.sheets['database'].\
+    date_added = wb.sheets['management'].\
         range("A10").value.strftime('%Y-%m-%d %H:%M')
     client = wb.api.ActiveSheet.OLEObjects("ComboBox3").Object.Value
     product = wb.api.ActiveSheet.OLEObjects("ComboBox4").Object.Value
     status = wb.api.ActiveSheet.OLEObjects("ComboBox8").Object.Value
-    comment = wb.sheets['database'].range("E10").value
+    comment = wb.sheets['management'].range("E10").value
 
     database = os.path.join(os.path.dirname(wb.fullname), 'cmd_dep_CRM.db')
 
@@ -80,14 +81,16 @@ def insert_a_service():
             # create a new project
             service = (date_added, client, product, status, comment)
             service_id = create_service(conn, service)
-            wb.sheets['database'].range("F2").color = (146, 208, 80)
-            wb.sheets['database'].range("F2").value = \
+            wb.sheets['management'].range("F2").color = (146, 208, 80)
+            wb.sheets['management'].range("F2").value = \
                 str(datetime.datetime.now()) + ": Клиенту " + str(client) \
-                + ' добавлен продукт ' + str(product)
+                + ' добавлен продукт ' + str(product) \
+                + ' и назначен статус ' + str(status)
+            wb.sheets['management'].range("E10:F12").clear_contents()
     except sqlite3.IntegrityError as e:
-        wb.sheets['database'].range("F2").value = \
+        wb.sheets['management'].range("F2").value = \
             str(datetime.datetime.now()) + ': ' + str(e)
-        wb.sheets['database'].range("F2").color = (240, 100, 77)
+        wb.sheets['management'].range("F2").color = (240, 100, 77)
 
 
 def create_contact(conn, contact):
@@ -103,30 +106,30 @@ def create_contact(conn, contact):
 
 def insert_a_contact():
     wb = xw.Book.caller()
-    date_added = wb.sheets['database'].range("A17").value
-    family = wb.sheets['database'].range("B17").value
-    name = wb.sheets['database'].range("C17").value
+    date_added = wb.sheets['management'].range("A17").value
+    family = wb.sheets['management'].range("B17").value
+    name = wb.sheets['management'].range("C17").value
 
     if name is None:
-        wb.sheets['database'].range("F2").color = (240, 100, 77)
-        wb.sheets['database'].range("F2").value = \
+        wb.sheets['management'].range("F2").color = (240, 100, 77)
+        wb.sheets['management'].range("F2").value = \
             "Имя контакта является обязательным для заполнения!"
         return None
     else:
         name += " "
 
-    surname = wb.sheets['database'].range("D17").value
+    surname = wb.sheets['management'].range("D17").value
 
     if family is None:
         family = ' '
     if surname is None:
         surname = ' '
 
-    mobile_phone = wb.sheets['database'].range("E17").value
-    email = wb.sheets['database'].range("F17").value
-    position = wb.sheets['database'].range("C20").value
-    work_phone = wb.sheets['database'].range("E20").value
-    external = wb.sheets['database'].range("F20").value
+    mobile_phone = wb.sheets['management'].range("E17").value
+    email = wb.sheets['management'].range("F17").value
+    position = wb.sheets['management'].range("C20").value
+    work_phone = wb.sheets['management'].range("E20").value
+    external = wb.sheets['management'].range("F20").value
 
     database = os.path.join(os.path.dirname(wb.fullname), 'cmd_dep_CRM.db')
 
@@ -139,13 +142,13 @@ def insert_a_contact():
                        surname, mobile_phone, work_phone, external,
                        position, email)
             contact_id = create_contact(conn, contact)
-            wb.sheets['database'].range("F2").color = (146, 208, 80)
-            wb.sheets['database'].range("F2").value = \
+            wb.sheets['management'].range("F2").color = (146, 208, 80)
+            wb.sheets['management'].range("F2").value = \
                 str(datetime.datetime.now()) + ": Создан контакт " + str(name) \
                 + ' ' + str(surname) + ' ' + str(family)
     except sqlite3.IntegrityError as e:
-        wb.sheets['database'].range("F2").color = (240, 100, 77)
-        wb.sheets['database'].range("F2").value = \
+        wb.sheets['management'].range("F2").color = (240, 100, 77)
+        wb.sheets['management'].range("F2").value = \
             str(datetime.datetime.now()) + ': ' + str(e)
 
 
@@ -171,13 +174,13 @@ def insert_a_bounded_contact():
             # create a bounded_contact
             bounded_contact = (client, contact)
             bounded_contact_id = create_bounded_contact(conn, bounded_contact)
-            wb.sheets['database'].range("F2").color = (146, 208, 80)
-            wb.sheets['database'].range("F2").value = \
+            wb.sheets['management'].range("F2").color = (146, 208, 80)
+            wb.sheets['management'].range("F2").value = \
                 str(datetime.datetime.now()) + ": Клиенту " + str(client) + \
                 ' назначен контакт ' + str(contact)
     except sqlite3.IntegrityError as e:
-        wb.sheets['database'].range("F2").color = (240, 100, 77)
-        wb.sheets['database'].range("F2").value = \
+        wb.sheets['management'].range("F2").color = (240, 100, 77)
+        wb.sheets['management'].range("F2").value = \
             str(datetime.datetime.now()) + ': ' + str(e)
 
 
@@ -195,10 +198,10 @@ def create_bounded_status(conn, bounded_status):
 def insert_a_bounded_status():
     wb = xw.Book.caller()
     date_added = \
-        wb.sheets['database'].range("A27").value.strftime('%Y-%m-%d %H:%M')
+        wb.sheets['management'].range("A27").value.strftime('%Y-%m-%d %H:%M')
     client = wb.api.ActiveSheet.OLEObjects("ComboBox7").Object.Value
     status = wb.api.ActiveSheet.OLEObjects("ComboBox8").Object.Value
-    comment = wb.sheets['database'].range("D27").value
+    comment = wb.sheets['management'].range("D27").value
 
     database = os.path.join(os.path.dirname(wb.fullname), 'cmd_dep_CRM.db')
 
@@ -209,13 +212,13 @@ def insert_a_bounded_status():
             # create a new project
             bounded_status = (client, status, date_added, comment)
             bounded_status_id = create_bounded_status(conn, bounded_status)
-            wb.sheets['database'].range("F2").color = (146, 208, 80)
-            wb.sheets['database'].range("F2").value = \
+            wb.sheets['management'].range("F2").color = (146, 208, 80)
+            wb.sheets['management'].range("F2").value = \
                 str(datetime.datetime.now()) + ": Статус клиента " \
                 + str(client) + ' изменен на ' + str(status)
     except sqlite3.IntegrityError as e:
-        wb.sheets['database'].range("F2").color = (240, 100, 77)
-        wb.sheets['database'].range("F2").value = \
+        wb.sheets['management'].range("F2").color = (240, 100, 77)
+        wb.sheets['management'].range("F2").value = \
             str(datetime.datetime.now()) + ': ' + str(e)
 
 
@@ -229,9 +232,9 @@ def create_request(conn, request):
 
 def insert_a_request():
     wb = xw.Book.caller()
-    date_added = wb.sheets['database'].range("A28").value.strftime('%Y-%m-%d')
+    date_added = wb.sheets['management'].range("A28").value.strftime('%Y-%m-%d')
     branch = wb.api.ActiveSheet.OLEObjects("ComboBox10").Object.Value
-    comment = wb.sheets['database'].range("C28").value
+    comment = wb.sheets['management'].range("C28").value
 
     database = os.path.join(os.path.dirname(wb.fullname), 'cmd_dep_CRM.db')
 
@@ -242,13 +245,13 @@ def insert_a_request():
             # create a new request
             request = (date_added, branch, comment)
             request_id = create_request(conn, request)
-            wb.sheets['database'].range("F2").color = (146, 208, 80)
-            wb.sheets['database'].range("F2").value = \
+            wb.sheets['management'].range("F2").color = (146, 208, 80)
+            wb.sheets['management'].range("F2").value = \
                 str(datetime.datetime.now()) + \
                 ": Создано обращение от филиала " + str(branch)
     except sqlite3.IntegrityError as e:
-        wb.sheets['database'].range("F2").color = (240, 100, 77)
-        wb.sheets['database'].range("F2").value = \
+        wb.sheets['management'].range("F2").color = (240, 100, 77)
+        wb.sheets['management'].range("F2").value = \
             str(datetime.datetime.now()) + ': ' + str(e)
 
 
@@ -301,7 +304,7 @@ def count_requests():
     query = cursor.execute(sql, [start_date, end_date])
     cols = [column[0] for column in query.description]
     data = pd.DataFrame(query.fetchall(), columns=cols)
-    wb.sheets['branches_report'].range('A8:F100').clear_contents()
+    wb.sheets['branches_report'].range('A8:G100').clear_contents()
 
     return data
 
@@ -343,26 +346,7 @@ def get_all_clients():
     db_file = os.path.join(os.path.dirname(wb.fullname), 'cmd_dep_CRM.db')
     conn = create_connection(db_file, )
     cursor = conn.cursor()
-    sql = '''SELECT clients.okpo AS 'ОКПО',  clients.name AS 'Компания',
-        markets.name AS 'Рынок',
-        products.name AS 'Продукт', statuses.name AS 'Статус',
-        services.date_added AS 'Статус действителен с',
-        (contacts.name || contacts.surname || contacts.family)
-        AS 'Контактное лицо',
-        contacts.position AS 'Должность',
-        contacts.mobile_phone AS 'Мобильный телефон',
-        contacts.work_phone AS 'Рабочий телефон',
-        contacts.external AS 'Доб.',
-        contacts.email AS 'Email'
-        FROM clients
-        JOIN services ON services.client = clients.okpo
-        JOIN products ON products.id = services.product
-        JOIN statuses ON statuses.id = services.status
-        JOIN markets ON markets.id = products.market
-        JOIN bounded_contacts ON bounded_contacts.client = clients.okpo
-        JOIN contacts ON contacts.id = bounded_contacts.contact
-        GROUP BY clients.okpo, contacts.name'''
-
+    sql = '''SELECT * FROM all_clients'''
     query = cursor.execute(sql, )
     cols = [column[0] for column in query.description]
     data = pd.DataFrame(query.fetchall(), columns=cols)
