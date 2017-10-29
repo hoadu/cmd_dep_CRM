@@ -64,7 +64,8 @@ def create_service(conn, service):
 
 def insert_a_service():
     wb = xw.Book.caller()
-    date_added = wb.sheets['database'].range("A10").value.strftime('%Y-%m-%d')
+    date_added = wb.sheets['database'].\
+        range("A10").value.strftime('%Y-%m-%d %H:%M')
     client = wb.api.ActiveSheet.OLEObjects("ComboBox3").Object.Value
     product = wb.api.ActiveSheet.OLEObjects("ComboBox4").Object.Value
     status = wb.api.ActiveSheet.OLEObjects("ComboBox8").Object.Value
@@ -343,22 +344,25 @@ def get_all_clients():
     db_file = os.path.join(os.path.dirname(wb.fullname), 'cmd_dep_CRM.db')
     conn = create_connection(db_file, )
     cursor = conn.cursor()
-    sql = '''SELECT DISTINCT clients.okpo AS 'ОКПО',  clients.name AS 'Компания',
-        products.name AS 'Продукт', statuses.name AS 'Текущий статус',
-        bounded_statuses.date_added AS 'Статус действителен с',
-        (contacts.name || contacts.family) AS 'Контактное лицо',
-        contacts.phone AS 'Телефон', contacts.email AS 'Email'
+    sql = '''SELECT clients.okpo AS 'ОКПО',  clients.name AS 'Компания',
+        markets.name AS 'Рынок',
+        products.name AS 'Продукт', statuses.name AS 'Статус',
+        services.date_added AS 'Статус действителен с',
+        (contacts.name || contacts.surname || contacts.family)
+        AS 'Контактное лицо',
+        contacts.position AS 'Должность',
+        contacts.mobile_phone AS 'Мобильный телефон',
+        contacts.work_phone AS 'Рабочий телефон',
+        contacts.external AS 'Доб.',
+        contacts.email AS 'Email'
         FROM clients
-        JOIN products on products.id = services.product
-        JOIN services on services.client = clients.okpo
-        JOIN bounded_statuses on bounded_statuses.client = clients.okpo AND
-            bounded_statuses.date_added = (
-            SELECT bounded_statuses.date_added FROM bounded_statuses
-            WHERE bounded_statuses.client = clients.okpo
-            ORDER BY bounded_statuses.date_added DESC LIMIT 1)
-        JOIN statuses on statuses.id = bounded_statuses.status
-        JOIN bounded_contacts on bounded_contacts.client = clients.okpo
-        JOIN contacts on contacts.id = bounded_contacts.contact'''
+        JOIN services ON services.client = clients.okpo
+        JOIN products ON products.id = services.product
+        JOIN statuses ON statuses.id = services.status
+        JOIN markets ON markets.id = products.market
+        JOIN bounded_contacts ON bounded_contacts.client = clients.okpo
+        JOIN contacts ON contacts.id = bounded_contacts.contact
+        GROUP BY clients.okpo'''
 
     query = cursor.execute(sql, )
     cols = [column[0] for column in query.description]
