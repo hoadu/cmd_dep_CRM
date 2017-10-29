@@ -127,7 +127,7 @@ def insert_a_contact():
 
     mobile_phone = wb.sheets['management'].range("E17").value
     email = wb.sheets['management'].range("F17").value
-    position = wb.sheets['management'].range("C20").value
+    position = wb.sheets['management'].range("D20").value
     work_phone = wb.sheets['management'].range("E20").value
     external = wb.sheets['management'].range("F20").value
 
@@ -139,13 +139,16 @@ def insert_a_contact():
         with conn:
             # create a new project
             contact = (date_added, family, name,
-                       surname, mobile_phone, work_phone, external,
-                       position, email)
+                       surname, position,
+                       mobile_phone, work_phone,
+                       external, email)
             contact_id = create_contact(conn, contact)
             wb.sheets['management'].range("F2").color = (146, 208, 80)
             wb.sheets['management'].range("F2").value = \
                 str(datetime.datetime.now()) + ": Создан контакт " + str(name) \
                 + ' ' + str(surname) + ' ' + str(family)
+            wb.sheets['management'].range('B17:F17').clear_contents()
+            wb.sheets['management'].range('D20:F20').clear_contents()
     except sqlite3.IntegrityError as e:
         wb.sheets['management'].range("F2").color = (240, 100, 77)
         wb.sheets['management'].range("F2").value = \
@@ -232,7 +235,8 @@ def create_request(conn, request):
 
 def insert_a_request():
     wb = xw.Book.caller()
-    date_added = wb.sheets['management'].range("A28").value.strftime('%Y-%m-%d')
+    date_added = \
+        wb.sheets['management'].range("A28").value.strftime('%Y-%m-%d')
     branch = wb.api.ActiveSheet.OLEObjects("ComboBox10").Object.Value
     comment = wb.sheets['management'].range("C28").value
 
